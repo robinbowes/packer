@@ -51,11 +51,16 @@ Optional parameters:
   `key=value`.
 
 * `execute_command` (string) - The command to use to execute the script.
-  By default this is `{{ .Vars }} sh {{ .Path }}`. The value of this is
+  By default this is `chmod +x {{ .Path }}; {{ .Vars }} {{ .Path }}`. The value of this is
   treated as [configuration template](/docs/templates/configuration-
   templates.html). There are two available variables: `Path`, which is
   the path to the script to run, and `Vars`, which is the list of
   `environment_vars`, if configured.
+
+* `inline_shebang` (string) - The
+  [shebang](http://en.wikipedia.org/wiki/Shebang_(Unix)) value to use when
+  running commands specified by `inline`. By default, this is `/bin/sh`.
+  If you're not using `inline`, then this configuration has no effect.
 
 * `remote_path` (string) - The path where the script will be uploaded to
   in the machine. This defaults to "/tmp/script.sh". This value must be

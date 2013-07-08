@@ -27,7 +27,8 @@ Ubuntu to self-install. Still, the example serves to show the basic configuratio
   "iso_url": "http://releases.ubuntu.com/12.04/ubuntu-12.04.2-server-amd64.iso",
   "iso_md5": "af5f788aee1b32c4b2634734309cc9e9",
   "ssh_username": "packer",
-  "ssh_wait_timeout": "30s"
+  "ssh_wait_timeout": "30s",
+  "shutdown_command": "shutdown -P now"
 }
 </pre>
 
@@ -74,6 +75,16 @@ Optional:
   is "VBoxGuestAdditions.iso" which should upload into the login directory
   of the user. This is a [configuration template](/docs/templates/configuration-templates.html)
   where the `Version` variable is replaced with the VirtualBox version.
+
+* `guest_additions_sha256` (string) - The SHA256 checksum of the guest
+  additions ISO that will be uploaded to the guest VM. By default the
+  checksums will be downloaded from the VirtualBox website, so this only
+  needs to be set if you want to be explicit about the checksum.
+
+* `guest_additions_url` (string) - The URL to the guest additions ISO
+  to upload. This can also be a file URL if the ISO is at a local path.
+  By default the VirtualBox builder will go and download the proper
+  guest additions ISO from the internet.
 
 * `guest_os_type` (string) - The guest OS type being installed. By default
   this is "other", but you can get _dramatic_ performance improvements by

@@ -119,7 +119,7 @@ func TestBuilderPrepare_GuestAdditionsPath(t *testing.T) {
 	var b Builder
 	config := testConfig()
 
-	delete(config, "disk_size")
+	delete(config, "guest_additions_path")
 	err := b.Prepare(config)
 	if err != nil {
 		t.Fatalf("bad err: %s", err)
@@ -138,6 +138,81 @@ func TestBuilderPrepare_GuestAdditionsPath(t *testing.T) {
 
 	if b.config.GuestAdditionsPath != "foo" {
 		t.Fatalf("bad size: %s", b.config.GuestAdditionsPath)
+	}
+}
+
+func TestBuilderPrepare_GuestAdditionsSHA256(t *testing.T) {
+	var b Builder
+	config := testConfig()
+
+	delete(config, "guest_additions_sha256")
+	err := b.Prepare(config)
+	if err != nil {
+		t.Fatalf("bad err: %s", err)
+	}
+
+	if b.config.GuestAdditionsSHA256 != "" {
+		t.Fatalf("bad: %s", b.config.GuestAdditionsSHA256)
+	}
+
+	config["guest_additions_sha256"] = "FOO"
+	b = Builder{}
+	err = b.Prepare(config)
+	if err != nil {
+		t.Fatalf("should not have error: %s", err)
+	}
+
+	if b.config.GuestAdditionsSHA256 != "foo" {
+		t.Fatalf("bad size: %s", b.config.GuestAdditionsSHA256)
+	}
+}
+
+func TestBuilderPrepare_GuestAdditionsURL(t *testing.T) {
+	var b Builder
+	config := testConfig()
+
+	config["guest_additions_url"] = ""
+	err := b.Prepare(config)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if b.config.GuestAdditionsURL != "" {
+		t.Fatalf("should be empty: %s", b.config.GuestAdditionsURL)
+	}
+
+	config["guest_additions_url"] = "i/am/a/file/that/doesnt/exist"
+	err = b.Prepare(config)
+	if err == nil {
+		t.Error("should have error")
+	}
+
+	config["guest_additions_url"] = "file:i/am/a/file/that/doesnt/exist"
+	err = b.Prepare(config)
+	if err == nil {
+		t.Error("should have error")
+	}
+
+	config["guest_additions_url"] = "http://www.packer.io"
+	err = b.Prepare(config)
+	if err != nil {
+		t.Errorf("should not have error: %s", err)
+	}
+
+	tf, err := ioutil.TempFile("", "packer")
+	if err != nil {
+		t.Fatalf("error tempfile: %s", err)
+	}
+	defer os.Remove(tf.Name())
+
+	config["guest_additions_url"] = tf.Name()
+	err = b.Prepare(config)
+	if err != nil {
+		t.Fatalf("should not have error: %s", err)
+	}
+
+	if b.config.GuestAdditionsURL != "file://"+tf.Name() {
+		t.Fatalf("guest_additions_url should be modified: %s", b.config.GuestAdditionsURL)
 	}
 }
 

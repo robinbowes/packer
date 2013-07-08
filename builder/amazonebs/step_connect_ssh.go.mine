@@ -25,10 +25,48 @@ func (s *stepConnectSSH) Run(state map[string]interface{}) multistep.StepAction 
 	var comm packer.Communicator
 	var err error
 
+<<<<<<< HEAD
+	var comm packer.Communicator
+
+	go func() {
+		var err error
+
+		ui.Say("Connecting to the instance via SSH...")
+		attempts := 0
+		for {
+			select {
+			case <-connectQuit:
+				return
+			default:
+			}
+
+			attempts += 1
+			log.Printf(
+				"Opening TCP conn for SSH to %s:%d (attempt %d)",
+				instance.DNSName, config.SSHPort, attempts)
+			s.conn, err = net.Dial("tcp", fmt.Sprintf("%s:%d", instance.DNSName, config.SSHPort))
+
+			if err == nil {
+				comm, err = ssh.New(s.conn, sshConfig)
+			}
+			if err == nil {
+				break
+			}
+
+			log.Printf("TCP/SSH connection failed: %s", err)
+
+			// A brief sleep so we're not being overly zealous attempting
+			// to connect to the instance.
+			time.Sleep(500 * time.Millisecond)
+		}
+
+		connected <- true
+=======
 	waitDone := make(chan bool, 1)
 	go func() {
 		comm, err = s.waitForSSH(state)
 		waitDone <- true
+>>>>>>> upstream/master
 	}()
 
 	log.Printf("Waiting for SSH, up to timeout: %s", config.SSHTimeout.String())
@@ -59,6 +97,8 @@ WaitLoop:
 		}
 	}
 
+<<<<<<< HEAD
+=======
 	return multistep.ActionContinue
 }
 
@@ -81,6 +121,7 @@ func (s *stepConnectSSH) waitForSSH(state map[string]interface{}) (packer.Commun
 	// we'll use to authenticate.
 	keyring := &ssh.SimpleKeychain{}
 	err := keyring.AddPEMKey(privateKey)
+>>>>>>> upstream/master
 	if err != nil {
 		return nil, fmt.Errorf("Error setting up SSH config: %s", err)
 	}
