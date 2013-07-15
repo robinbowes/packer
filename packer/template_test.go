@@ -2,6 +2,7 @@ package packer
 
 import (
 	"cgl.tideland.biz/asserts"
+	"reflect"
 	"sort"
 	"testing"
 )
@@ -29,6 +30,23 @@ func TestParseTemplate_Invalid(t *testing.T) {
 	data := `
 	{
 		"builders": [],
+	}
+	`
+
+	result, err := ParseTemplate([]byte(data))
+	assert.NotNil(err, "should have an error")
+	assert.Nil(result, "should have no result")
+}
+
+func TestParseTemplate_InvalidKeys(t *testing.T) {
+	assert := asserts.NewTestingAsserts(t, true)
+
+	// Note there is an extra comma below for a purposeful
+	// syntax error in the JSON.
+	data := `
+	{
+		"builders": [{"type": "foo"}],
+		"what is this": ""
 	}
 	`
 
@@ -539,7 +557,22 @@ func TestTemplate_Build_ProvisionerOverride(t *testing.T) {
 	`
 
 	template, err := ParseTemplate([]byte(data))
-	assert.Nil(err, "should not error")
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	rawConfig := template.Provisioners[0].rawConfig
+	if rawConfig == nil {
+		t.Fatal("missing provisioner raw config")
+	}
+
+	expected := map[string]interface{}{
+		"type": "test-prov",
+	}
+
+	if !reflect.DeepEqual(rawConfig, expected) {
+		t.Fatalf("bad raw: %#v", rawConfig)
+	}
 
 	builder := testBuilder()
 	builderMap := map[string]Builder{

@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"text/template"
 )
@@ -46,6 +47,10 @@ type config struct {
 	// should be used to specify where the script goes, {{ .Vars }}
 	// can be used to inject the environment_vars into the environment.
 	ExecuteCommand string `mapstructure:"execute_command"`
+
+	// Packer configurations, these come from Packer itself
+	PackerBuildName   string `mapstructure:"packer_build_name"`
+	PackerBuilderType string `mapstructure:"packer_builder_type"`
 }
 
 type Provisioner struct {
@@ -58,9 +63,35 @@ type ExecuteCommandTemplate struct {
 }
 
 func (p *Provisioner) Prepare(raws ...interface{}) error {
+	var md mapstructure.Metadata
+	decoderConfig := &mapstructure.DecoderConfig{
+		Metadata: &md,
+		Result:   &p.config,
+	}
+
+	decoder, err := mapstructure.NewDecoder(decoderConfig)
+	if err != nil {
+		return err
+	}
+
 	for _, raw := range raws {
-		if err := mapstructure.Decode(raw, &p.config); err != nil {
+		err := decoder.Decode(raw)
+		if err != nil {
 			return err
+		}
+	}
+
+	// Accumulate any errors
+	errs := make([]error, 0)
+
+	// Unused keys are errors
+	if len(md.Unused) > 0 {
+		sort.Strings(md.Unused)
+		for _, unused := range md.Unused {
+			if unused != "type" && !strings.HasPrefix(unused, "packer_") {
+				errs = append(
+					errs, fmt.Errorf("Unknown configuration key: %s", unused))
+			}
 		}
 	}
 
@@ -88,8 +119,6 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 		p.config.Vars = make([]string, 0)
 	}
 
-	errs := make([]error, 0)
-
 	if p.config.Script != "" && len(p.config.Scripts) > 0 {
 		errs = append(errs, errors.New("Only one of script or scripts can be specified."))
 	}
@@ -114,7 +143,9 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 	for _, kv := range p.config.Vars {
 		vs := strings.Split(kv, "=")
 		if len(vs) != 2 || vs[0] == "" {
-			errs = append(errs, fmt.Errorf("Environment variable not in format 'key=value': %s", kv))
+			errs = append(
+				errs,
+				fmt.Errorf("Environment variable not in format 'key=value': %s", kv))
 		}
 	}
 
@@ -157,6 +188,12 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		tf.Close()
 	}
 
+	// Build our variables up by adding in the build name and builder type
+	envVars := make([]string, len(p.config.Vars)+2)
+	envVars[0] = "PACKER_BUILD_NAME=" + p.config.PackerBuildName
+	envVars[1] = "PACKER_BUILDER_TYPE=" + p.config.PackerBuilderType
+	copy(envVars[2:], p.config.Vars)
+
 	for _, path := range scripts {
 		ui.Say(fmt.Sprintf("Provisioning with shell script: %s", path))
 
@@ -177,7 +214,7 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		f.Close()
 
 		// Flatten the environment variables
-		flattendVars := strings.Join(p.config.Vars, " ")
+		flattendVars := strings.Join(envVars, " ")
 
 		// Compile the command
 		var command bytes.Buffer

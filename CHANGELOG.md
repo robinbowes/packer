@@ -1,9 +1,57 @@
-## 0.1.5 (unreleased)
+## 0.2.0 (unreleased)
+
+BACKWARDS INCOMPATIBILITIES:
+
+* "iso_md5" in the virtualbox and vmware builders is replaced with
+  "iso_checksum" and "iso_checksum_type" (with the latter set to "md5").
+  See the announce below on `packer fix` to automatically fix your templates.
 
 FEATURES:
 
-* "file" uploader will upload files and directories from the machine
-  running Packer to the remote machine.
+* **NEW COMMAND:** `packer fix` will attempt to fix templates from older
+  versions of Packer that are now broken due to backwards incompatibilities.
+  This command will fix the backwards incompatibilities introduced in this
+  version.
+* Amazon EBS builder can now optionally use a pre-made security group
+  instead of randomly generating one.
+* DigitalOcean API key and client IDs can now be passed in as
+  environmental variables. See the documentatin for more details.
+* VirtualBox and VMware can now have `floppy_files` specified to attach
+  floppy disks when booting. This allows for unattended Windows installs.
+* `packer build` has a new `-force` flag that forces the removal of
+  existing artifacts if they exist. [GH-173]
+* You can now log to a file (instead of just stderr) by setting the
+  `PACKER_LOG_FILE` environmental variable. [GH-168]
+* Checksums other than MD5 can now be used. SHA1 and SHA256 can also
+  be used. See the documentation on `iso_checksum_type` for more info. [GH-175]
+
+IMPROVEMENTS:
+
+* core: invalid keys in configuration are now considered validation
+  errors. [GH-104]
+* core: all builders now share a common SSH connection core, improving
+  SSH reliability over all the builders.
+* amazon-ebs: Credentials will come from IAM role if available. [GH-160]
+* amazon-ebs: Verify the source AMI is EBS-backed before launching. [GH-169]
+* shell provisioner: the build name and builder type are available in
+  the `PACKER_BUILD_NAME` and `PACKER_BUILDER_TYPE` env vars by default,
+  respectively. [GH-154]
+* vmware: error if shutdown command has non-zero exit status.
+
+BUG FIXES:
+
+* core: UI messages are now properly prefixed with spaces again.
+* core: If SSH connection ends, re-connection attempts will take
+  place. [GH-152]
+* virtualbox: "paused" doesn't mean the VM is stopped, improving
+  shutdown detection.
+
+## 0.1.5 (July 7, 2013)
+
+FEATURES:
+
+* "file" uploader will upload files from the machine running Packer to the
+  remote machine.
 * VirtualBox guest additions URL and checksum can now be specified, allowing
   the VirtualBox builder to have the ability to be used completely offline.
 

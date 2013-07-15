@@ -1,4 +1,4 @@
-package amazonebs
+package ebs
 
 import (
 	"github.com/mitchellh/packer/packer"
@@ -44,55 +44,6 @@ func TestBuilder_Prepare_BadType(t *testing.T) {
 	err := b.Prepare(c)
 	if err == nil {
 		t.Fatalf("prepare should fail")
-	}
-}
-
-func TestBuilderPrepare_AccessKey(t *testing.T) {
-	var b Builder
-	config := testConfig()
-
-	// Test good
-	config["access_key"] = "foo"
-	err := b.Prepare(config)
-	if err != nil {
-		t.Fatalf("should not have error: %s", err)
-	}
-
-	if b.config.AccessKey != "foo" {
-		t.Errorf("access key invalid: %s", b.config.AccessKey)
-	}
-
-	// Test bad
-	delete(config, "access_key")
-	b = Builder{}
-	err = b.Prepare(config)
-	if err == nil {
-		t.Fatal("should have error")
-	}
-
-	// Test env
-	delete(config, "access_key")
-	os.Setenv("AWS_ACCESS_KEY_ID", "foo")
-	defer os.Setenv("AWS_ACCESS_KEY_ID", "")
-	err = b.Prepare(config)
-	if err != nil {
-		t.Fatalf("should not have error: %s", err)
-	}
-
-	if b.config.AccessKey != "foo" {
-		t.Errorf("access key invalid: %s", b.config.AccessKey)
-	}
-
-	delete(config, "access_key")
-	os.Setenv("AWS_ACCESS_KEY", "foo")
-	defer os.Setenv("AWS_ACCESS_KEY", "")
-	err = b.Prepare(config)
-	if err != nil {
-		t.Fatalf("should not have error: %s", err)
-	}
-
-	if b.config.AccessKey != "foo" {
-		t.Errorf("access key invalid: %s", b.config.AccessKey)
 	}
 }
 
@@ -148,6 +99,18 @@ func TestBuilderPrepare_InstanceType(t *testing.T) {
 	}
 }
 
+func TestBuilderPrepare_InvalidKey(t *testing.T) {
+	var b Builder
+	config := testConfig()
+
+	// Add a random key
+	config["i_should_not_be_valid"] = true
+	err := b.Prepare(config)
+	if err == nil {
+		t.Fatal("should have error")
+	}
+}
+
 func TestBuilderPrepare_Region(t *testing.T) {
 	var b Builder
 	config := testConfig()
@@ -177,55 +140,6 @@ func TestBuilderPrepare_Region(t *testing.T) {
 	err = b.Prepare(config)
 	if err == nil {
 		t.Fatal("should have error")
-	}
-}
-
-func TestBuilderPrepare_SecretKey(t *testing.T) {
-	var b Builder
-	config := testConfig()
-
-	// Test good
-	config["secret_key"] = "foo"
-	err := b.Prepare(config)
-	if err != nil {
-		t.Fatalf("should not have error: %s", err)
-	}
-
-	if b.config.SecretKey != "foo" {
-		t.Errorf("secret key invalid: %s", b.config.SecretKey)
-	}
-
-	// Test bad
-	delete(config, "secret_key")
-	b = Builder{}
-	err = b.Prepare(config)
-	if err == nil {
-		t.Fatal("should have error")
-	}
-
-	// Test env
-	delete(config, "secret_key")
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "foo")
-	defer os.Setenv("AWS_SECRET_ACCESS_KEY", "")
-	err = b.Prepare(config)
-	if err != nil {
-		t.Fatalf("should not have error: %s", err)
-	}
-
-	if b.config.SecretKey != "foo" {
-		t.Errorf("access key invalid: %s", b.config.SecretKey)
-	}
-
-	delete(config, "secret_key")
-	os.Setenv("AWS_SECRET_KEY", "foo")
-	defer os.Setenv("AWS_SECRET_KEY", "")
-	err = b.Prepare(config)
-	if err != nil {
-		t.Fatalf("should not have error: %s", err)
-	}
-
-	if b.config.SecretKey != "foo" {
-		t.Errorf("access key invalid: %s", b.config.SecretKey)
 	}
 }
 

@@ -1,4 +1,4 @@
-package amazonebs
+package ebs
 
 import (
 	"cgl.tideland.biz/identifier"
@@ -18,6 +18,12 @@ func (s *stepSecurityGroup) Run(state map[string]interface{}) multistep.StepActi
 	config := state["config"].(config)
 	ec2conn := state["ec2"].(*ec2.EC2)
 	ui := state["ui"].(packer.Ui)
+
+	if config.SecurityGroupId != "" {
+		log.Printf("Using specified security group: %s", config.SecurityGroupId)
+		state["securityGroupId"] = config.SecurityGroupId
+		return multistep.ActionContinue
+	}
 
 	// Create the group
 	ui.Say("Creating temporary security group for this instance...")

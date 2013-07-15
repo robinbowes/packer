@@ -11,6 +11,7 @@ func testBuild() *coreBuild {
 		name:          "test",
 		builder:       &TestBuilder{artifactId: "b"},
 		builderConfig: 42,
+		builderType:   "foo",
 		hooks: map[string][]Hook{
 			"foo": []Hook{&TestHook{}},
 		},
@@ -40,8 +41,10 @@ func TestBuild_Prepare(t *testing.T) {
 	assert := asserts.NewTestingAsserts(t, true)
 
 	packerConfig := map[string]interface{}{
-		BuildNameConfigKey: "test",
-		DebugConfigKey:     false,
+		BuildNameConfigKey:   "test",
+		BuilderTypeConfigKey: "foo",
+		DebugConfigKey:       false,
+		ForceConfigKey:       false,
 	}
 
 	build := testBuild()
@@ -86,8 +89,10 @@ func TestBuild_Prepare_Debug(t *testing.T) {
 	assert := asserts.NewTestingAsserts(t, true)
 
 	packerConfig := map[string]interface{}{
-		BuildNameConfigKey: "test",
-		DebugConfigKey:     true,
+		BuildNameConfigKey:   "test",
+		BuilderTypeConfigKey: "foo",
+		DebugConfigKey:       true,
+		ForceConfigKey:       false,
 	}
 
 	build := testBuild()

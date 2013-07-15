@@ -2,6 +2,9 @@ package common
 
 import (
 	"bytes"
+	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -44,6 +47,21 @@ type DownloadConfig struct {
 type DownloadClient struct {
 	config     *DownloadConfig
 	downloader Downloader
+}
+
+// HashForType returns the Hash implementation for the given string
+// type, or nil if the type is not supported.
+func HashForType(t string) hash.Hash {
+	switch t {
+	case "md5":
+		return md5.New()
+	case "sha1":
+		return sha1.New()
+	case "sha256":
+		return sha256.New()
+	default:
+		return nil
+	}
 }
 
 // NewDownloadClient returns a new DownloadClient for the given
