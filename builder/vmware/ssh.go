@@ -12,6 +12,7 @@ import (
 
 func sshAddress(state map[string]interface{}) (string, error) {
 	config := state["config"].(*config)
+	driver := state["driver"].(Driver)
 	vmxPath := state["vmx_path"].(string)
 
 	log.Println("Lookup up IP information...")
@@ -37,6 +38,7 @@ func sshAddress(state map[string]interface{}) (string, error) {
 	}
 
 	ipLookup := &DHCPLeaseGuestLookup{
+		Driver:     driver,
 		Device:     "vmnet8",
 		MACAddress: macAddress,
 	}
@@ -45,6 +47,11 @@ func sshAddress(state map[string]interface{}) (string, error) {
 	if err != nil {
 		log.Printf("IP lookup failed: %s", err)
 		return "", fmt.Errorf("IP lookup failed: %s", err)
+	}
+
+	if ipAddress == "" {
+		log.Println("IP is blank, no IP yet.")
+		return "", errors.New("IP is blank")
 	}
 
 	log.Printf("Detected IP: %s", ipAddress)

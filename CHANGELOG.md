@@ -1,4 +1,10 @@
-## 0.2.0 (unreleased)
+## 0.2.1 (unreleased)
+
+FEATURES:
+
+* VMware builder now works with Workstation 9 on Linux.
+
+## 0.2.0 (July 16, 2013)
 
 BACKWARDS INCOMPATIBILITIES:
 
@@ -45,6 +51,7 @@ BUG FIXES:
   place. [GH-152]
 * virtualbox: "paused" doesn't mean the VM is stopped, improving
   shutdown detection.
+* vmware: error if guest IP could not be detected. [GH-189]
 
 ## 0.1.5 (July 7, 2013)
 

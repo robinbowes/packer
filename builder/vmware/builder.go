@@ -255,7 +255,7 @@ func (b *Builder) Prepare(raws ...interface{}) error {
 		errs = append(errs, fmt.Errorf("vnc_port_min must be less than vnc_port_max"))
 	}
 
-	b.driver, err = b.newDriver()
+	b.driver, err = NewDriver()
 	if err != nil {
 		errs = append(errs, fmt.Errorf("Failed creating VMware driver: %s", err))
 	}
@@ -290,7 +290,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			SSHWaitTimeout: b.config.sshWaitTimeout,
 		},
 		&stepUploadTools{},
-		&stepProvision{},
+		&common.StepProvision{},
 		&stepShutdown{},
 		&stepCleanFiles{},
 		&stepCleanVMX{},
@@ -357,14 +357,4 @@ func (b *Builder) Cancel() {
 		log.Println("Cancelling the step runner...")
 		b.runner.Cancel()
 	}
-}
-
-func (b *Builder) newDriver() (Driver, error) {
-	fusionAppPath := "/Applications/VMware Fusion.app"
-	driver := &Fusion5Driver{fusionAppPath}
-	if err := driver.Verify(); err != nil {
-		return nil, err
-	}
-
-	return driver, nil
 }

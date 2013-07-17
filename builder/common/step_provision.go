@@ -1,4 +1,4 @@
-package digitalocean
+package common
 
 import (
 	"github.com/mitchellh/multistep"
@@ -6,9 +6,18 @@ import (
 	"log"
 )
 
-type stepProvision struct{}
+// StepProvision runs the provisioners.
+//
+// Uses:
+//   communicator packer.Communicator
+//   hook         packer.Hook
+//   ui           packer.Ui
+//
+// Produces:
+//   <nothing>
+type StepProvision struct{}
 
-func (*stepProvision) Run(state map[string]interface{}) multistep.StepAction {
+func (*StepProvision) Run(state map[string]interface{}) multistep.StepAction {
 	comm := state["communicator"].(packer.Communicator)
 	hook := state["hook"].(packer.Hook)
 	ui := state["ui"].(packer.Ui)
@@ -22,4 +31,4 @@ func (*stepProvision) Run(state map[string]interface{}) multistep.StepAction {
 	return multistep.ActionContinue
 }
 
-func (*stepProvision) Cleanup(map[string]interface{}) {}
+func (*StepProvision) Cleanup(map[string]interface{}) {}
